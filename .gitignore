@@ -1,0 +1,12 @@
+# Arquivos compilados
+bin/
+out/
+*.class
+
+# VS Code (mantém só a configuração do projeto)
+.vscode/*
+!.vscode/settings.json
+
+# Eclipse (metadados locais; .project e .classpath ficam no Git)
+.settings/
+.metadata/

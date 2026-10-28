@@ -18,6 +18,19 @@ public abstract class Dispositivo {
     /** Tipo do equipamento, resolvido por polimorfismo em cada subclasse. */
     public abstract String getTipo();
 
+    /** O nome identifica o dispositivo (e o vertice no Grafo). */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Dispositivo)) return false;
+        return nome.equals(((Dispositivo) o).nome);
+    }
+
+    @Override
+    public int hashCode() {
+        return nome.hashCode();
+    }
+
     @Override
     public String toString() {
         return nome + " [" + getTipo() + "]";

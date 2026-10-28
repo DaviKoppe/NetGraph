@@ -14,6 +14,10 @@ import java.util.Map;
  */
 public class GerenciadorDispositivos {
 
+    /** Tipos aceitos no cadastro (para a interface montar a lista de opcoes). */
+    private static final List<String> TIPOS =
+            List.of("Computador", "Servidor", "Roteador", "Switch");
+
     private final Grafo grafo; // mesma instancia criada no Main
     private final Map<String, Dispositivo> dispositivos = new LinkedHashMap<>();
 
@@ -67,6 +71,16 @@ public class GerenciadorDispositivos {
             }
         }
         return lista;
+    }
+
+    /** Lista dos tipos de dispositivo que o cadastro aceita. */
+    public static List<String> tiposDisponiveis() {
+        return TIPOS;
+    }
+
+    /** true se o texto corresponde a um tipo que o cadastro sabe criar. */
+    public boolean tipoValido(String tipo) {
+        return tipo != null && criar("teste", tipo.trim()) != null;
     }
 
     private Dispositivo criar(String nome, String tipo) {

@@ -63,6 +63,36 @@ public class TesteGerenciadorConexoes {
         verificar(analisadorRede.obterDispositivoMaisConectado() == switch01,
                 "calcular maior grau depois da remocao");
 
+        // --- caminho mais curto (Grafo + fachada) ---
+        // Estado neste ponto: PC-02 esta isolado; PC-01 - Switch-01 - Roteador-01 - Servidor-01
+        verificar(nomes(gerenciadorConexoes.caminhoMaisCurto(pc01, servidor01))
+                .equals(List.of("PC-01", "Switch-01", "Roteador-01", "Servidor-01")),
+                "caminho mais curto PC-01 -> Servidor-01");
+        verificar(nomes(gerenciadorConexoes.caminhoMaisCurto(pc01, pc01)).equals(List.of("PC-01")),
+                "caminho de um dispositivo ate ele mesmo");
+        verificar(gerenciadorConexoes.caminhoMaisCurto(pc01, pc02).isEmpty(),
+                "sem caminho para dispositivo isolado");
+        verificar(!gerenciadorConexoes.existeCaminho(pc01, pc02), "existeCaminho falso para isolado");
+        verificar(gerenciadorConexoes.existeCaminho(pc01, servidor01), "existeCaminho verdadeiro");
+        verificar(gerenciadorConexoes.caminhoMaisCurto(pc01, servidor09).isEmpty(),
+                "sem caminho para dispositivo nao cadastrado");
+        // atalho: com Switch-01 - Servidor-01 o caminho passa a ter 2 saltos
+        gerenciadorConexoes.conectar(switch01, servidor01);
+        verificar(nomes(gerenciadorConexoes.caminhoMaisCurto(pc01, servidor01))
+                .equals(List.of("PC-01", "Switch-01", "Servidor-01")),
+                "caminho mais curto escolhe o atalho");
+        gerenciadorConexoes.desconectar(switch01, servidor01);
+
+        // --- tipos e igualdade ---
+        verificar(GerenciadorDispositivos.tiposDisponiveis()
+                .equals(List.of("Computador", "Servidor", "Roteador", "Switch")), "tipos disponiveis");
+        verificar(gerenciadorDispositivos.tipoValido("switch") && gerenciadorDispositivos.tipoValido("Computador"),
+                "tipos validos");
+        verificar(!gerenciadorDispositivos.tipoValido("impressora") && !gerenciadorDispositivos.tipoValido(null),
+                "tipos invalidos");
+        verificar(new Servidor("PC-01").equals(pc01) && new Servidor("PC-01").hashCode() == pc01.hashCode(),
+                "dispositivos com o mesmo nome sao iguais");
+
         Grafo grafoVazio = new Grafo();
         GerenciadorDispositivos dispositivosVazios = new GerenciadorDispositivos(grafoVazio);
         AnalisadorRede analisadorVazio = new AnalisadorRede(grafoVazio, dispositivosVazios);

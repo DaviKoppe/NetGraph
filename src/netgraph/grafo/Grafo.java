@@ -35,7 +35,7 @@ public class Grafo {
         if (a.equals(b)) return false;
         if (existeAresta(a, b)) return false;
         adjacencias.get(a).add(b);
-        adjacencias.get(b).add(a); // não direcionado: registra nos dois lados
+        adjacencias.get(b).add(a);
         return true;
     }
 
@@ -73,7 +73,7 @@ public class Grafo {
             String atual = fila.poll();
             ordem.add(atual);
             for (String vizinho : adjacencias.get(atual)) {
-                if (visitados.add(vizinho)) { // add retorna false se já estava
+                if (visitados.add(vizinho)) { 
                     fila.add(vizinho);
                 }
             }
@@ -96,6 +96,32 @@ public class Grafo {
                 dfsRecursivo(vizinho, visitados, ordem);
             }
         }
+    }
+
+    public List<String> caminhoMaisCurto(String origem, String destino) {
+        List<String> caminho = new ArrayList<>();
+        if (!existeVertice(origem) || !existeVertice(destino)) return caminho;
+
+        Map<String, String> veioDe = new HashMap<>();
+        Queue<String> fila = new LinkedList<>();
+        veioDe.put(origem, null);
+        fila.add(origem);
+
+        while (!fila.isEmpty() && !veioDe.containsKey(destino)) {
+            String atual = fila.poll();
+            for (String vizinho : adjacencias.get(atual)) {
+                if (!veioDe.containsKey(vizinho)) {
+                    veioDe.put(vizinho, atual);
+                    fila.add(vizinho);
+                }
+            }
+        }
+        if (!veioDe.containsKey(destino)) return caminho; // sem caminho
+
+        for (String v = destino; v != null; v = veioDe.get(v)) {
+            caminho.add(0, v);
+        }
+        return caminho;
     }
 
     @Override

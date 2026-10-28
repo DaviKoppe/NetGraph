@@ -45,6 +45,14 @@ public class GerenciadorConexoes {
         return converter(grafo.dfs(nomeDe(origem)));
     }
 
+    public List<Dispositivo> caminhoMaisCurto(Dispositivo origem, Dispositivo destino) {
+        return converter(grafo.caminhoMaisCurto(nomeDe(origem), nomeDe(destino)));
+    }
+
+    public boolean existeCaminho(Dispositivo origem, Dispositivo destino) {
+        return !caminhoMaisCurto(origem, destino).isEmpty();
+    }
+
     private String nomeDe(Dispositivo dispositivo) {
         return dispositivo == null ? null : dispositivo.getNome();
     }

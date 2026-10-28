@@ -2,6 +2,7 @@ package netgraph.app;
 
 import java.util.List;
 import java.util.Scanner;
+import netgraph.conexao.AnalisadorRede;
 import netgraph.conexao.GerenciadorConexoes;
 import netgraph.grafo.Grafo;
 import netgraph.modelo.Dispositivo;
@@ -10,10 +11,9 @@ import netgraph.modelo.GerenciadorDispositivos;
 public class Main {
 
     private static final Grafo grafo = new Grafo();
-    private static final GerenciadorDispositivos gerenciadorDispositivos =
-            new GerenciadorDispositivos(grafo);
-    private static final GerenciadorConexoes gerenciadorConexoes =
-            new GerenciadorConexoes(grafo, gerenciadorDispositivos);
+    private static final GerenciadorDispositivos dispositivos = new GerenciadorDispositivos(grafo);
+    private static final GerenciadorConexoes conexoes = new GerenciadorConexoes(grafo, dispositivos);
+    private static final AnalisadorRede analise = new AnalisadorRede(grafo, dispositivos);
     private static final Scanner teclado = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -28,81 +28,80 @@ public class Main {
 
     private static void exibirMenu() {
         System.out.println("\n===== NetGraph =====");
-        System.out.println("1 - Cadastrar dispositivo");
-        System.out.println("2 - Buscar dispositivo");
-        System.out.println("3 - Remover dispositivo");
-        System.out.println("4 - Listar dispositivos e conexoes");
-        System.out.println("5 - Criar conexao");
-        System.out.println("6 - Remover conexao");
-        System.out.println("7 - Consultar vizinhos");
-        System.out.println("8 - Executar BFS");
-        System.out.println("9 - Executar DFS");
-        System.out.println("0 - Sair");
+        System.out.println("1  - Cadastrar dispositivo");
+        System.out.println("2  - Buscar dispositivo");
+        System.out.println("3  - Remover dispositivo");
+        System.out.println("4  - Listar dispositivos e conexoes");
+        System.out.println("5  - Criar conexao");
+        System.out.println("6  - Remover conexao");
+        System.out.println("7  - Consultar vizinhos");
+        System.out.println("8  - Executar BFS");
+        System.out.println("9  - Executar DFS");
+        System.out.println("10 - Caminho mais curto");
+        System.out.println("11 - Dispositivos sem conexao");
+        System.out.println("12 - Dispositivo mais conectado");
+        System.out.println("13 - A rede esta toda conectada?");
+        System.out.println("0  - Sair");
     }
 
     private static void executar(int opcao) {
         switch (opcao) {
             case 1:
-                String novo = lerTexto("Nome do dispositivo: ");
-                String tipo = lerTexto("Tipo (computador, servidor, roteador ou switch): ");
-                if (gerenciadorDispositivos.cadastrar(novo, tipo) != null)
-                    System.out.println("OK: dispositivo " + novo + " cadastrado.");
-                else
-                    System.out.println("ERRO: tipo invalido, nome vazio ou dispositivo ja cadastrado.");
+                cadastrar();
                 break;
             case 2:
-                String busca = lerTexto("Nome do dispositivo: ");
-                Dispositivo dispositivoBuscado = gerenciadorDispositivos.buscar(busca);
-                System.out.println(dispositivoBuscado != null
-                        ? "Encontrado: " + dispositivoBuscado + " ("
-                                + gerenciadorConexoes.obterQuantidadeConexoes(dispositivoBuscado)
-                                + " conexoes)"
+                Dispositivo achado = dispositivos.buscar(lerTexto("Nome do dispositivo: "));
+                System.out.println(achado != null
+                        ? "Encontrado: " + achado + " (" + conexoes.obterQuantidadeConexoes(achado) + " conexoes)"
                         : "Dispositivo nao encontrado.");
                 break;
             case 3:
                 String remover = lerTexto("Nome do dispositivo: ");
-                System.out.println(gerenciadorDispositivos.remover(remover)
+                System.out.println(dispositivos.remover(remover)
                         ? "OK: dispositivo " + remover + " removido (e suas conexoes)."
                         : "ERRO: dispositivo inexistente.");
                 break;
             case 4:
-                if (grafo.listarVertices().isEmpty())
-                    System.out.println("Nenhum dispositivo cadastrado.");
-                else
-                    System.out.print(grafo);
+                listar();
                 break;
             case 5:
-                String nomeA = lerTexto("Dispositivo A: ");
-                String nomeB = lerTexto("Dispositivo B: ");
-                Dispositivo a = gerenciadorDispositivos.buscar(nomeA);
-                Dispositivo b = gerenciadorDispositivos.buscar(nomeB);
-                System.out.println(gerenciadorConexoes.conectar(a, b)
-                        ? "OK: conexao " + nomeA + " - " + nomeB + " criada."
-                        : "ERRO: dispositivo inexistente, conexao com ele mesmo ou ja existente.");
+                conectar();
                 break;
             case 6:
-                String nomeC = lerTexto("Dispositivo A: ");
-                String nomeD = lerTexto("Dispositivo B: ");
-                Dispositivo c = gerenciadorDispositivos.buscar(nomeC);
-                Dispositivo d = gerenciadorDispositivos.buscar(nomeD);
-                System.out.println(gerenciadorConexoes.desconectar(c, d)
-                        ? "OK: conexao " + nomeC + " - " + nomeD + " removida."
+                Dispositivo c = dispositivos.buscar(lerTexto("Dispositivo A: "));
+                Dispositivo d = dispositivos.buscar(lerTexto("Dispositivo B: "));
+                System.out.println(conexoes.desconectar(c, d)
+                        ? "OK: conexao " + c.getNome() + " - " + d.getNome() + " removida."
                         : "ERRO: essa conexao nao existe.");
                 break;
             case 7:
-                String nome = lerTexto("Dispositivo: ");
-                Dispositivo v = gerenciadorDispositivos.buscar(nome);
-                if (v == null)
-                    System.out.println("ERRO: dispositivo inexistente.");
-                else
-                    System.out.println("Vizinhos de " + v.getNome() + ": "
-                            + gerenciadorConexoes.obterConexoes(v));
+                Dispositivo v = dispositivos.buscar(lerTexto("Dispositivo: "));
+                System.out.println(v == null
+                        ? "ERRO: dispositivo inexistente."
+                        : "Vizinhos de " + v.getNome() + ": " + conexoes.obterConexoes(v));
                 break;
             case 8:
-                percorrer("BFS", lerTexto("Origem: "), true);
+                percorrer("BFS", true);
                 break;
             case 9:
-                percorrer("DFS", lerTexto("Origem: "), false);
+                percorrer("DFS", false);
+                break;
+            case 10:
+                caminhoMaisCurto();
+                break;
+            case 11:
+                System.out.println("Sem conexao: " + analise.listarDispositivosSemConexao());
+                break;
+            case 12:
+                Dispositivo top = analise.obterDispositivoMaisConectado();
+                System.out.println(top == null
+                        ? "Nenhum dispositivo cadastrado."
+                        : "Mais conectado: " + top + " (" + conexoes.obterQuantidadeConexoes(top) + " conexoes)");
+                break;
+            case 13:
+                System.out.println(analise.estaRedeConectada()
+                        ? "Sim, todos os dispositivos se alcancam."
+                        : "Nao, existem dispositivos isolados ou grupos separados.");
                 break;
             case 0:
                 break;
@@ -111,16 +110,67 @@ public class Main {
         }
     }
 
-    private static void percorrer(String nome, String origem, boolean largura) {
-        Dispositivo dispositivo = gerenciadorDispositivos.buscar(origem);
-        if (dispositivo == null) {
+    private static void cadastrar() {
+        String nome = lerTexto("Nome do dispositivo: ");
+        String tipo = lerTexto("Tipo " + GerenciadorDispositivos.tiposDisponiveis() + ": ");
+        if (nome.isEmpty())
+            System.out.println("ERRO: o nome nao pode ser vazio.");
+        else if (!dispositivos.tipoValido(tipo))
+            System.out.println("ERRO: tipo invalido. Use um de " + GerenciadorDispositivos.tiposDisponiveis() + ".");
+        else if (dispositivos.buscar(nome) != null)
+            System.out.println("ERRO: dispositivo ja cadastrado.");
+        else if (dispositivos.cadastrar(nome, tipo) != null)
+            System.out.println("OK: dispositivo " + nome + " cadastrado.");
+        else
+            System.out.println("ERRO: nao foi possivel cadastrar.");
+    }
+
+    private static void listar() {
+        List<Dispositivo> todos = dispositivos.listar();
+        if (todos.isEmpty()) {
+            System.out.println("Nenhum dispositivo cadastrado.");
+            return;
+        }
+        for (Dispositivo dispositivo : todos)
+            System.out.println(dispositivo + " -> " + conexoes.obterConexoes(dispositivo));
+    }
+
+    private static void conectar() {
+        Dispositivo a = dispositivos.buscar(lerTexto("Dispositivo A: "));
+        Dispositivo b = dispositivos.buscar(lerTexto("Dispositivo B: "));
+        if (a == null || b == null)
+            System.out.println("ERRO: dispositivo inexistente.");
+        else if (a.equals(b))
+            System.out.println("ERRO: nao e possivel conectar um dispositivo a ele mesmo.");
+        else if (conexoes.estaConectado(a, b))
+            System.out.println("ERRO: essa conexao ja existe.");
+        else if (conexoes.conectar(a, b))
+            System.out.println("OK: conexao " + a.getNome() + " - " + b.getNome() + " criada.");
+        else
+            System.out.println("ERRO: nao foi possivel criar a conexao.");
+    }
+
+    private static void percorrer(String nome, boolean largura) {
+        Dispositivo origem = dispositivos.buscar(lerTexto("Origem: "));
+        if (origem == null) {
             System.out.println("ERRO: dispositivo de origem inexistente.");
             return;
         }
-        List<Dispositivo> ordem = largura
-                ? gerenciadorConexoes.bfs(dispositivo)
-                : gerenciadorConexoes.dfs(dispositivo);
-        System.out.println(nome + " a partir de " + origem + ": " + ordem);
+        List<Dispositivo> ordem = largura ? conexoes.bfs(origem) : conexoes.dfs(origem);
+        System.out.println(nome + " a partir de " + origem.getNome() + ": " + ordem);
+    }
+
+    private static void caminhoMaisCurto() {
+        Dispositivo origem = dispositivos.buscar(lerTexto("Origem: "));
+        Dispositivo destino = dispositivos.buscar(lerTexto("Destino: "));
+        if (origem == null || destino == null) {
+            System.out.println("ERRO: dispositivo inexistente.");
+            return;
+        }
+        List<Dispositivo> caminho = conexoes.caminhoMaisCurto(origem, destino);
+        System.out.println(caminho.isEmpty()
+                ? "Nao existe caminho entre " + origem.getNome() + " e " + destino.getNome() + "."
+                : "Caminho (" + (caminho.size() - 1) + " saltos): " + caminho);
     }
 
     private static String lerTexto(String mensagem) {

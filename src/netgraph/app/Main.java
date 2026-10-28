@@ -2,11 +2,18 @@ package netgraph.app;
 
 import java.util.List;
 import java.util.Scanner;
+import netgraph.conexao.GerenciadorConexoes;
 import netgraph.grafo.Grafo;
+import netgraph.modelo.Dispositivo;
+import netgraph.modelo.GerenciadorDispositivos;
 
 public class Main {
 
     private static final Grafo grafo = new Grafo();
+    private static final GerenciadorDispositivos gerenciadorDispositivos =
+            new GerenciadorDispositivos(grafo);
+    private static final GerenciadorConexoes gerenciadorConexoes =
+            new GerenciadorConexoes(grafo, gerenciadorDispositivos);
     private static final Scanner teclado = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -37,20 +44,24 @@ public class Main {
         switch (opcao) {
             case 1:
                 String novo = lerTexto("Nome do dispositivo: ");
-                if (grafo.adicionarVertice(novo))
+                String tipo = lerTexto("Tipo (computador, servidor, roteador ou switch): ");
+                if (gerenciadorDispositivos.cadastrar(novo, tipo) != null)
                     System.out.println("OK: dispositivo " + novo + " cadastrado.");
                 else
-                    System.out.println("ERRO: nome vazio ou dispositivo ja cadastrado.");
+                    System.out.println("ERRO: tipo invalido, nome vazio ou dispositivo ja cadastrado.");
                 break;
             case 2:
                 String busca = lerTexto("Nome do dispositivo: ");
-                System.out.println(grafo.existeVertice(busca)
-                        ? "Encontrado: " + busca + " (" + grafo.grau(busca) + " conexoes)"
+                Dispositivo dispositivoBuscado = gerenciadorDispositivos.buscar(busca);
+                System.out.println(dispositivoBuscado != null
+                        ? "Encontrado: " + dispositivoBuscado + " ("
+                                + gerenciadorConexoes.obterQuantidadeConexoes(dispositivoBuscado)
+                                + " conexoes)"
                         : "Dispositivo nao encontrado.");
                 break;
             case 3:
                 String remover = lerTexto("Nome do dispositivo: ");
-                System.out.println(grafo.removerVertice(remover)
+                System.out.println(gerenciadorDispositivos.remover(remover)
                         ? "OK: dispositivo " + remover + " removido (e suas conexoes)."
                         : "ERRO: dispositivo inexistente.");
                 break;
@@ -61,25 +72,31 @@ public class Main {
                     System.out.print(grafo);
                 break;
             case 5:
-                String a = lerTexto("Dispositivo A: ");
-                String b = lerTexto("Dispositivo B: ");
-                System.out.println(grafo.adicionarAresta(a, b)
-                        ? "OK: conexao " + a + " - " + b + " criada."
+                String nomeA = lerTexto("Dispositivo A: ");
+                String nomeB = lerTexto("Dispositivo B: ");
+                Dispositivo a = gerenciadorDispositivos.buscar(nomeA);
+                Dispositivo b = gerenciadorDispositivos.buscar(nomeB);
+                System.out.println(gerenciadorConexoes.conectar(a, b)
+                        ? "OK: conexao " + nomeA + " - " + nomeB + " criada."
                         : "ERRO: dispositivo inexistente, conexao com ele mesmo ou ja existente.");
                 break;
             case 6:
-                String c = lerTexto("Dispositivo A: ");
-                String d = lerTexto("Dispositivo B: ");
-                System.out.println(grafo.removerAresta(c, d)
-                        ? "OK: conexao " + c + " - " + d + " removida."
+                String nomeC = lerTexto("Dispositivo A: ");
+                String nomeD = lerTexto("Dispositivo B: ");
+                Dispositivo c = gerenciadorDispositivos.buscar(nomeC);
+                Dispositivo d = gerenciadorDispositivos.buscar(nomeD);
+                System.out.println(gerenciadorConexoes.desconectar(c, d)
+                        ? "OK: conexao " + nomeC + " - " + nomeD + " removida."
                         : "ERRO: essa conexao nao existe.");
                 break;
             case 7:
-                String v = lerTexto("Dispositivo: ");
-                if (!grafo.existeVertice(v))
+                String nome = lerTexto("Dispositivo: ");
+                Dispositivo v = gerenciadorDispositivos.buscar(nome);
+                if (v == null)
                     System.out.println("ERRO: dispositivo inexistente.");
                 else
-                    System.out.println("Vizinhos de " + v + ": " + grafo.obterVizinhos(v));
+                    System.out.println("Vizinhos de " + v.getNome() + ": "
+                            + gerenciadorConexoes.obterConexoes(v));
                 break;
             case 8:
                 percorrer("BFS", lerTexto("Origem: "), true);
@@ -95,11 +112,14 @@ public class Main {
     }
 
     private static void percorrer(String nome, String origem, boolean largura) {
-        if (!grafo.existeVertice(origem)) {
+        Dispositivo dispositivo = gerenciadorDispositivos.buscar(origem);
+        if (dispositivo == null) {
             System.out.println("ERRO: dispositivo de origem inexistente.");
             return;
         }
-        List<String> ordem = largura ? grafo.bfs(origem) : grafo.dfs(origem);
+        List<Dispositivo> ordem = largura
+                ? gerenciadorConexoes.bfs(dispositivo)
+                : gerenciadorConexoes.dfs(dispositivo);
         System.out.println(nome + " a partir de " + origem + ": " + ordem);
     }
 

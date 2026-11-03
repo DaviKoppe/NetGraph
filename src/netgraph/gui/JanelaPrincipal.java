@@ -1,7 +1,11 @@
 package netgraph.gui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -10,7 +14,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -34,7 +37,7 @@ public class JanelaPrincipal extends Application {
     private final ControladorRede controlador = new ControladorRede(grafo, dispositivos, conexoes);
     private final PainelRede painel = new PainelRede();
 
-    private final TextField campoNome = new TextField();
+    private final Map<String, Integer> contadores = new HashMap<>();
     private final ComboBox<String> comboTipo = new ComboBox<>();
     private final ComboBox<String> comboA = new ComboBox<>();
     private final ComboBox<String> comboB = new ComboBox<>();
@@ -59,10 +62,6 @@ public class JanelaPrincipal extends Application {
     }
 
     private Node montarMenuLateral() {
-        campoNome.setId("campoNome");
-        campoNome.setPromptText("Nome (ex.: PC-01)");
-        campoNome.setOnAction(e -> cadastrar());
-
         comboTipo.setId("comboTipo");
         comboTipo.getItems().setAll(controlador.listarTipos());
         comboTipo.getSelectionModel().selectFirst();
@@ -81,7 +80,7 @@ public class JanelaPrincipal extends Application {
 
         VBox menu = new VBox(16,
                 secao("Cadastrar dispositivo",
-                        campoNome, comboTipo, botao("btnCadastrar", "Cadastrar", this::cadastrar)),
+                        comboTipo, botao("btnCadastrar", "Cadastrar", this::cadastrar)),
                 secao("Dispositivos selecionados", comboA, comboB, dica),
                 secao("Conexoes",
                         botao("btnConectar", "Conectar A e B", this::conectar),
@@ -133,13 +132,22 @@ public class JanelaPrincipal extends Application {
     }
 
     private void cadastrar() {
-        ResultadoOperacao resultado = controlador.cadastrarDispositivo(campoNome.getText(), comboTipo.getValue());
-        mostrar(resultado);
-        if (resultado.isSucesso()) {
-            campoNome.clear();
-            atualizar();
+        String tipo = comboTipo.getValue();
+        if (tipo == null) {
+            mostrar(false, "Escolha o tipo do dispositivo.");
+            return;
         }
-        campoNome.requestFocus();
+        alterarRede(controlador.cadastrarDispositivo(proximoNome(tipo), tipo));
+    }
+
+    private String proximoNome(String tipo) {
+        String prefixo = tipo.equals("Computador") ? "PC" : tipo;
+        Set<String> existentes = new HashSet<>(nomes(controlador.listarDispositivos()));
+        String nome;
+        do {
+            nome = String.format("%s-%02d", prefixo, contadores.merge(tipo, 1, Integer::sum));
+        } while (existentes.contains(nome));
+        return nome;
     }
 
     private void conectar() {

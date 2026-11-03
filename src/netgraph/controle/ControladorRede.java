@@ -17,14 +17,13 @@ import java.util.Set;
  */
 public class ControladorRede {
 
-    private final Grafo grafo; // recebido para uso futuro (BFS, DFS, analises); nao e recriado aqui
     private final GerenciadorDispositivos gerenciadorDispositivos;
     private final GerenciadorConexoes gerenciadorConexoes;
 
     public ControladorRede(Grafo grafo,
                            GerenciadorDispositivos gerenciadorDispositivos,
                            GerenciadorConexoes gerenciadorConexoes) {
-        this.grafo = Objects.requireNonNull(grafo);
+        Objects.requireNonNull(grafo); // a instancia e compartilhada pelos gerenciadores
         this.gerenciadorDispositivos = Objects.requireNonNull(gerenciadorDispositivos);
         this.gerenciadorConexoes = Objects.requireNonNull(gerenciadorConexoes);
     }
@@ -62,7 +61,7 @@ public class ControladorRede {
         return GerenciadorDispositivos.tiposDisponiveis();
     }
 
-        public ResultadoOperacao removerDispositivo(String nome) {
+    public ResultadoOperacao removerDispositivo(String nome) {
         Dispositivo d = gerenciadorDispositivos.buscar(nome);
         if (d == null) {
             return ResultadoOperacao.erro("Dispositivo inexistente: " + exibir(nome) + ".");
@@ -108,6 +107,16 @@ public class ControladorRede {
     public List<Dispositivo> dfs(String origem) {
         Dispositivo a = gerenciadorDispositivos.buscar(origem);
         return a == null ? new ArrayList<>() : gerenciadorConexoes.dfs(a);
+    }
+
+    public java.util.Map<String, String> bfsComPais(String origem) {
+        Dispositivo a = gerenciadorDispositivos.buscar(origem);
+        return a == null ? new java.util.LinkedHashMap<>() : gerenciadorConexoes.bfsComPais(a);
+    }
+
+    public java.util.Map<String, String> dfsComPais(String origem) {
+        Dispositivo a = gerenciadorDispositivos.buscar(origem);
+        return a == null ? new java.util.LinkedHashMap<>() : gerenciadorConexoes.dfsComPais(a);
     }
 
     public ResultadoOperacao conectar(String nomeA, String nomeB) {

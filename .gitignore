@@ -3,10 +3,14 @@ bin/
 out/
 *.class
 
-# VS Code (mantém só a configuração do projeto)
+# VS Code: versiona apenas as configuracoes compartilhaveis
 .vscode/*
 !.vscode/settings.json
+!.vscode/launch.json
 
 # Eclipse (metadados locais; .project e .classpath ficam no Git)
 .settings/
 .metadata/
+
+# SDK JavaFX local (nao versionar os binarios)
+.javafx/

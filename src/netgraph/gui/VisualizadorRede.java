@@ -1,6 +1,7 @@
 package netgraph.gui;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import javafx.scene.Node;
 import netgraph.controle.Conexao;
@@ -18,7 +19,7 @@ public interface VisualizadorRede {
     void destacarCaminho(List<String> nomes);
 
     /** Anima a visita passo a passo, na ordem recebida. O ritmo fica por conta de quem implementa. */
-    void animarPercurso(List<String> ordemDeVisita);
+    void animarPercurso(List<String> ordemDeVisita, Map<String, String> pais);
 
     /** Remove qualquer destaque ou animacao. */
     void limparDestaques();

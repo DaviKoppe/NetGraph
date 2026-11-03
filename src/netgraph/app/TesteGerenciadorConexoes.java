@@ -24,6 +24,7 @@ public class TesteGerenciadorConexoes {
         Dispositivo roteador01 = cadastrar(gerenciadorDispositivos, "Roteador-01", "roteador");
         Dispositivo servidor01 = cadastrar(gerenciadorDispositivos, "Servidor-01", "servidor");
         Dispositivo servidor09 = new Servidor("Servidor-09");
+        Dispositivo pc01Externo = new Servidor("PC-01");
 
         verificar(gerenciadorConexoes.conectar(pc01, switch01), "conectar PC-01 ao Switch-01");
         verificar(gerenciadorConexoes.conectar(pc02, switch01), "conectar PC-02 ao Switch-01");
@@ -33,6 +34,8 @@ public class TesteGerenciadorConexoes {
         verificar(!gerenciadorConexoes.conectar(switch01, pc01), "recusar conexao duplicada");
         verificar(!gerenciadorConexoes.conectar(pc01, pc01), "recusar conexao do dispositivo consigo mesmo");
         verificar(!gerenciadorConexoes.conectar(pc01, servidor09), "recusar dispositivo nao cadastrado");
+        verificar(!gerenciadorConexoes.conectar(pc01Externo, switch01),
+                "recusar objeto externo com nome igual ao dispositivo cadastrado");
         verificar(gerenciadorConexoes.estaConectado(pc01, switch01), "consultar conexao existente");
         verificar(!gerenciadorConexoes.estaConectado(pc01, servidor09), "consultar conexao inexistente");
         verificar(gerenciadorConexoes.obterQuantidadeConexoes(switch01) == 3,

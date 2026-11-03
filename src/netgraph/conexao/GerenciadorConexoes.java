@@ -45,6 +45,14 @@ public class GerenciadorConexoes {
         return converter(grafo.dfs(nomeDe(origem)));
     }
 
+    public java.util.Map<String, String> bfsComPais(Dispositivo origem) {
+        return grafo.bfsComPais(nomeDe(origem));
+    }
+
+    public java.util.Map<String, String> dfsComPais(Dispositivo origem) {
+        return grafo.dfsComPais(nomeDe(origem));
+    }
+
     public List<Dispositivo> caminhoMaisCurto(Dispositivo origem, Dispositivo destino) {
         return converter(grafo.caminhoMaisCurto(nomeDe(origem), nomeDe(destino)));
     }
@@ -54,7 +62,9 @@ public class GerenciadorConexoes {
     }
 
     private String nomeDe(Dispositivo dispositivo) {
-        return dispositivo == null ? null : dispositivo.getNome();
+        if (dispositivo == null) return null;
+        Dispositivo registrado = gerenciadorDispositivos.buscar(dispositivo.getNome());
+        return registrado == dispositivo ? dispositivo.getNome() : null;
     }
 
     private List<Dispositivo> converter(List<String> nomes) {

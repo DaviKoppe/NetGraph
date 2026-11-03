@@ -18,6 +18,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.ArcType;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
@@ -31,7 +32,7 @@ import netgraph.modelo.GerenciadorDispositivos;
 
 public class PainelRede implements VisualizadorRede {
 
-    private static final double RAIO = 22;
+    private static final double RAIO = 24;
     private static final double MARGEM = RAIO + 24;
     private static final double LIMIAR_ARRASTO = 4;
 
@@ -284,7 +285,7 @@ public class PainelRede implements VisualizadorRede {
         String achado = null;
         for (String nome : tipos.keySet()) {
             Point2D centro = pixel(nome);
-            if (contem(tipos.get(nome), centro.getX(), centro.getY(), RAIO, x, y)) {
+            if (contem(centro.getX(), centro.getY(), RAIO, x, y)) {
                 achado = nome;
             }
         }
@@ -383,19 +384,21 @@ public class PainelRede implements VisualizadorRede {
             if (nome.equals(atual)) {
                 gc.setStroke(COR_ATUAL);
                 gc.setLineWidth(10);
-                desenharForma(gc, tipo, cx, cy, RAIO, false);
+                gc.strokeRoundRect(cx - RAIO, cy - RAIO, RAIO * 2, RAIO * 2, 16, 16);
             }
-            gc.setFill(corDoTipo(tipo));
-            desenharForma(gc, tipo, cx, cy, RAIO, true);
-            gc.setStroke(noCaminho ? COR_CAMINHO : corDoTipo(tipo).darker());
-            gc.setLineWidth(noCaminho ? 4 : 2);
-            desenharForma(gc, tipo, cx, cy, RAIO, false);
+            desenharPlaca(gc, tipo, cx, cy, RAIO, noCaminho ? COR_CAMINHO : corDoTipo(tipo).darker(),
+                    noCaminho ? 4 : 2);
+            desenharIcone(gc, tipo, cx, cy, RAIO);
 
             if (visitado) {
+                double bx = cx + RAIO * 0.82;
+                double by = cy - RAIO * 0.82;
+                gc.setFill(corDoTipo(tipo).darker());
+                gc.fillOval(bx - 10, by - 10, 20, 20);
                 gc.setFont(FONTE_NUMERO);
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setFill(Color.WHITE);
-                gc.fillText(String.valueOf(visitados.indexOf(nome) + 1), cx, cy + 5);
+                gc.fillText(String.valueOf(visitados.indexOf(nome) + 1), bx, by + 5);
             }
             desenharRotulo(gc, nome, cx, cy + RAIO + 18);
         }
@@ -416,69 +419,80 @@ public class PainelRede implements VisualizadorRede {
 
     private void desenharLegenda(GraphicsContext gc) {
         gc.setFont(FONTE_NOME);
-        double y = 24;
+        double y = 28;
         for (String tipo : GerenciadorDispositivos.tiposDisponiveis()) {
-            gc.setFill(corDoTipo(tipo));
-            desenharForma(gc, tipo, 24, y, 9, true);
-            gc.setStroke(corDoTipo(tipo).darker());
-            gc.setLineWidth(1.5);
-            desenharForma(gc, tipo, 24, y, 9, false);
+            desenharPlaca(gc, tipo, 28, y, 13, corDoTipo(tipo).darker(), 1.5);
+            desenharIcone(gc, tipo, 28, y, 13);
             gc.setTextAlign(TextAlignment.LEFT);
             gc.setFill(COR_TEXTO);
-            gc.fillText(tipo, 42, y + 4);
-            y += 24;
+            gc.fillText(tipo, 50, y + 4);
+            y += 32;
         }
     }
 
-    private static void desenharForma(GraphicsContext gc, String tipo, double cx, double cy, double r,
-            boolean preencher) {
+    private static void desenharPlaca(GraphicsContext gc, String tipo, double cx, double cy, double r,
+            Color borda, double espessura) {
+        gc.setFill(Color.WHITE.interpolate(corDoTipo(tipo), 0.14));
+        gc.fillRoundRect(cx - r, cy - r, r * 2, r * 2, r * 0.7, r * 0.7);
+        gc.setStroke(borda);
+        gc.setLineWidth(espessura);
+        gc.strokeRoundRect(cx - r, cy - r, r * 2, r * 2, r * 0.7, r * 0.7);
+    }
+
+    private static void desenharIcone(GraphicsContext gc, String tipo, double cx, double cy, double r) {
+        Color cor = corDoTipo(tipo);
+        Color claro = Color.WHITE;
+        gc.setFill(cor);
+        gc.setStroke(cor);
+        gc.setLineWidth(Math.max(1.2, r * 0.09));
         switch (tipo) {
             case "Servidor":
-                if (preencher) {
-                    gc.fillRect(cx - r * 0.85, cy - r, r * 1.7, r * 2);
-                } else {
-                    gc.strokeRect(cx - r * 0.85, cy - r, r * 1.7, r * 2);
+                for (int i = 0; i < 3; i++) {
+                    double y = cy - r * 0.68 + i * r * 0.47;
+                    gc.setFill(cor);
+                    gc.fillRoundRect(cx - r * 0.6, y, r * 1.2, r * 0.38, r * 0.14, r * 0.14);
+                    gc.setFill(claro);
+                    gc.fillRect(cx - r * 0.46, y + r * 0.16, r * 0.4, r * 0.06);
+                    gc.fillOval(cx + r * 0.3, y + r * 0.13, r * 0.12, r * 0.12);
                 }
                 break;
             case "Roteador":
-                if (preencher) {
-                    gc.fillOval(cx - r, cy - r, r * 2, r * 2);
-                } else {
-                    gc.strokeOval(cx - r, cy - r, r * 2, r * 2);
+                gc.strokeLine(cx - r * 0.42, cy + r * 0.05, cx - r * 0.55, cy - r * 0.62);
+                gc.strokeLine(cx + r * 0.42, cy + r * 0.05, cx + r * 0.55, cy - r * 0.62);
+                gc.fillOval(cx - r * 0.55 - r * 0.07, cy - r * 0.62 - r * 0.07, r * 0.14, r * 0.14);
+                gc.fillOval(cx + r * 0.55 - r * 0.07, cy - r * 0.62 - r * 0.07, r * 0.14, r * 0.14);
+                gc.strokeArc(cx - r * 0.3, cy - r * 0.45, r * 0.6, r * 0.6, 40, 100, ArcType.OPEN);
+                gc.strokeArc(cx - r * 0.5, cy - r * 0.65, r * 1.0, r * 1.0, 45, 90, ArcType.OPEN);
+                gc.fillRoundRect(cx - r * 0.7, cy + r * 0.05, r * 1.4, r * 0.55, r * 0.16, r * 0.16);
+                gc.setFill(claro);
+                for (int i = 0; i < 3; i++) {
+                    gc.fillOval(cx - r * 0.42 + i * r * 0.3, cy + r * 0.27, r * 0.12, r * 0.12);
                 }
                 break;
             case "Switch":
-                double d = r * 1.25;
-                double[] xs = {cx, cx + d, cx, cx - d};
-                double[] ys = {cy - d, cy, cy + d, cy};
-                if (preencher) {
-                    gc.fillPolygon(xs, ys, 4);
-                } else {
-                    gc.strokePolygon(xs, ys, 4);
+                gc.fillRoundRect(cx - r * 0.72, cy - r * 0.12, r * 1.44, r * 0.6, r * 0.16, r * 0.16);
+                gc.setFill(claro);
+                for (int i = 0; i < 4; i++) {
+                    gc.fillRect(cx - r * 0.5 + i * r * 0.28, cy + r * 0.08, r * 0.17, r * 0.22);
                 }
+                gc.strokeLine(cx - r * 0.45, cy - r * 0.45, cx + r * 0.45, cy - r * 0.45);
+                gc.strokeLine(cx - r * 0.45, cy - r * 0.45, cx - r * 0.28, cy - r * 0.58);
+                gc.strokeLine(cx - r * 0.45, cy - r * 0.45, cx - r * 0.28, cy - r * 0.32);
+                gc.strokeLine(cx + r * 0.45, cy - r * 0.45, cx + r * 0.28, cy - r * 0.58);
+                gc.strokeLine(cx + r * 0.45, cy - r * 0.45, cx + r * 0.28, cy - r * 0.32);
                 break;
             default:
-                if (preencher) {
-                    gc.fillRoundRect(cx - r, cy - r * 0.75, r * 2, r * 1.5, 20, 20);
-                } else {
-                    gc.strokeRoundRect(cx - r, cy - r * 0.75, r * 2, r * 1.5, 20, 20);
-                }
+                gc.fillRoundRect(cx - r * 0.62, cy - r * 0.62, r * 1.24, r * 0.82, r * 0.12, r * 0.12);
+                gc.setFill(claro);
+                gc.fillRect(cx - r * 0.5, cy - r * 0.5, r * 1.0, r * 0.58);
+                gc.setFill(cor);
+                gc.fillRect(cx - r * 0.09, cy + r * 0.2, r * 0.18, r * 0.2);
+                gc.fillRoundRect(cx - r * 0.4, cy + r * 0.4, r * 0.8, r * 0.14, r * 0.08, r * 0.08);
         }
     }
 
-    private static boolean contem(String tipo, double cx, double cy, double r, double x, double y) {
-        double dx = Math.abs(x - cx);
-        double dy = Math.abs(y - cy);
-        switch (tipo) {
-            case "Servidor":
-                return dx <= r * 0.85 && dy <= r;
-            case "Roteador":
-                return dx * dx + dy * dy <= r * r;
-            case "Switch":
-                return dx + dy <= r * 1.25;
-            default:
-                return dx <= r && dy <= r * 0.75;
-        }
+    private static boolean contem(double cx, double cy, double r, double x, double y) {
+        return Math.abs(x - cx) <= r && Math.abs(y - cy) <= r;
     }
 
     private static Color corDoTipo(String tipo) {

@@ -1,5 +1,7 @@
 package netgraph.modelo;
 
+import java.util.Objects;
+
 /**
  * Dispositivo da rede. O nome e o mesmo identificador usado pelo Grafo (vertice).
  */
@@ -8,7 +10,10 @@ public abstract class Dispositivo {
     protected final String nome;
 
     public Dispositivo(String nome) {
-        this.nome = nome;
+        if (nome == null || nome.trim().isEmpty()) {
+            throw new IllegalArgumentException("O nome do dispositivo nao pode ser vazio.");
+        }
+        this.nome = nome.trim();
     }
 
     public String getNome() {
@@ -23,12 +28,12 @@ public abstract class Dispositivo {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Dispositivo)) return false;
-        return nome.equals(((Dispositivo) o).nome);
+        return Objects.equals(nome, ((Dispositivo) o).nome);
     }
 
     @Override
     public int hashCode() {
-        return nome.hashCode();
+        return Objects.hashCode(nome);
     }
 
     @Override

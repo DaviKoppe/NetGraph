@@ -1,11 +1,8 @@
 package netgraph.gui;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -14,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -37,7 +35,7 @@ public class JanelaPrincipal extends Application {
     private final ControladorRede controlador = new ControladorRede(grafo, dispositivos, conexoes);
     private final PainelRede painel = new PainelRede();
 
-    private final Map<String, Integer> contadores = new HashMap<>();
+    private final TextField campoNome = new TextField();
     private final ComboBox<String> comboTipo = new ComboBox<>();
     private final ComboBox<String> comboA = new ComboBox<>();
     private final ComboBox<String> comboB = new ComboBox<>();
@@ -62,6 +60,10 @@ public class JanelaPrincipal extends Application {
     }
 
     private Node montarMenuLateral() {
+        campoNome.setId("campoNome");
+        campoNome.setPromptText("Nome do dispositivo");
+        campoNome.setMaxWidth(Double.MAX_VALUE);
+
         comboTipo.setId("comboTipo");
         comboTipo.getItems().setAll(controlador.listarTipos());
         comboTipo.getSelectionModel().selectFirst();
@@ -74,13 +76,13 @@ public class JanelaPrincipal extends Application {
         comboB.setPromptText("Dispositivo B");
         comboB.setMaxWidth(Double.MAX_VALUE);
 
-        Label dica = new Label("Dica: clique nos dispositivos do desenho para escolher A e B.");
+        Label dica = new Label("Dica: selecione A e B nas listas ou clique nos dispositivos do desenho. Os cliques alternam entre A e B.");
         dica.setWrapText(true);
         dica.setStyle("-fx-text-fill: #636e72; -fx-font-size: 11px;");
 
         VBox menu = new VBox(16,
                 secao("Cadastrar dispositivo",
-                        comboTipo, botao("btnCadastrar", "Cadastrar", this::cadastrar)),
+                        campoNome, comboTipo, botao("btnCadastrar", "Cadastrar", this::cadastrar)),
                 secao("Dispositivos selecionados", comboA, comboB, dica),
                 secao("Conexoes",
                         botao("btnConectar", "Conectar A e B", this::conectar),
@@ -137,17 +139,18 @@ public class JanelaPrincipal extends Application {
             mostrar(false, "Escolha o tipo do dispositivo.");
             return;
         }
-        alterarRede(controlador.cadastrarDispositivo(proximoNome(tipo), tipo));
-    }
-
-    private String proximoNome(String tipo) {
-        String prefixo = tipo.equals("Computador") ? "PC" : tipo;
-        Set<String> existentes = new HashSet<>(nomes(controlador.listarDispositivos()));
-        String nome;
-        do {
-            nome = String.format("%s-%02d", prefixo, contadores.merge(tipo, 1, Integer::sum));
-        } while (existentes.contains(nome));
-        return nome;
+        String nome = campoNome.getText();
+        if (nome == null || nome.trim().isEmpty()) {
+            mostrar(false, "Informe o nome do dispositivo.");
+            campoNome.requestFocus();
+            return;
+        }
+        ResultadoOperacao resultado = controlador.cadastrarDispositivo(nome, tipo);
+        alterarRede(resultado);
+        if (resultado.isSucesso()) {
+            campoNome.clear();
+            campoNome.requestFocus();
+        }
     }
 
     private void conectar() {
@@ -187,18 +190,19 @@ public class JanelaPrincipal extends Application {
 
     private void bfs() {
         if (exigirA()) {
-            percorrer("BFS", nomes(controlador.bfs(comboA.getValue())));
+            percorrer("BFS", controlador.bfsComPais(comboA.getValue()));
         }
     }
 
     private void dfs() {
         if (exigirA()) {
-            percorrer("DFS", nomes(controlador.dfs(comboA.getValue())));
+            percorrer("DFS", controlador.dfsComPais(comboA.getValue()));
         }
     }
 
-    private void percorrer(String nome, List<String> ordem) {
-        painel.animarPercurso(ordem);
+    private void percorrer(String nome, Map<String, String> pais) {
+        List<String> ordem = new ArrayList<>(pais.keySet());
+        painel.animarPercurso(ordem, pais);
         mostrar(true, nome + " a partir de " + comboA.getValue() + ": " + String.join(", ", ordem));
     }
 
@@ -212,8 +216,10 @@ public class JanelaPrincipal extends Application {
     private void aoClicarDispositivo(String nome) {
         if (proximoCliqueEhA) {
             comboA.setValue(nome);
+            mostrar(true, "Dispositivo A selecionado: " + nome + ". Clique em outro dispositivo para selecionar B.");
         } else {
             comboB.setValue(nome);
+            mostrar(true, "Dispositivo B selecionado: " + nome + ".");
         }
         proximoCliqueEhA = !proximoCliqueEhA;
     }

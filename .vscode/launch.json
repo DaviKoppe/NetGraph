@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "NetGraph - Interface",
+            "request": "launch",
+            "mainClass": "netgraph.app.MainGui",
+            "vmArgs": "--module-path \"\u0024{workspaceFolder}/.javafx/lib\" --add-modules javafx.controls -Djava.library.path=\"\u0024{workspaceFolder}/.javafx/bin\""
+        }
+    ]
+}

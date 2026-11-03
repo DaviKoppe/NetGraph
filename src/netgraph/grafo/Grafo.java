@@ -61,39 +61,51 @@ public class Grafo {
     }
 
     public List<String> bfs(String origem) {
-        List<String> ordem = new ArrayList<>();
-        if (!existeVertice(origem)) return ordem;
+        return new ArrayList<>(bfsComPais(origem).keySet());
+    }
+
+    /** Retorna a ordem BFS e, para cada vertice (exceto a origem), seu pai real na arvore de busca. */
+    public Map<String, String> bfsComPais(String origem) {
+        Map<String, String> pais = new LinkedHashMap<>();
+        if (!existeVertice(origem)) return pais;
 
         Set<String> visitados = new HashSet<>();
         Queue<String> fila = new LinkedList<>();
         visitados.add(origem);
+        pais.put(origem, null);
         fila.add(origem);
 
         while (!fila.isEmpty()) {
             String atual = fila.poll();
-            ordem.add(atual);
             for (String vizinho : adjacencias.get(atual)) {
-                if (visitados.add(vizinho)) { 
+                if (visitados.add(vizinho)) {
+                    pais.put(vizinho, atual);
                     fila.add(vizinho);
                 }
             }
         }
-        return ordem;
+        return pais;
     }
 
     public List<String> dfs(String origem) {
-        List<String> ordem = new ArrayList<>();
-        if (!existeVertice(origem)) return ordem;
-        dfsRecursivo(origem, new HashSet<>(), ordem);
-        return ordem;
+        return new ArrayList<>(dfsComPais(origem).keySet());
     }
 
-    private void dfsRecursivo(String atual, Set<String> visitados, List<String> ordem) {
+    /** Retorna a ordem DFS e os pais reais usados na descoberta de cada vertice. */
+    public Map<String, String> dfsComPais(String origem) {
+        Map<String, String> pais = new LinkedHashMap<>();
+        if (!existeVertice(origem)) return pais;
+        dfsRecursivo(origem, null, new HashSet<>(), pais);
+        return pais;
+    }
+
+    private void dfsRecursivo(String atual, String pai, Set<String> visitados,
+            Map<String, String> pais) {
         visitados.add(atual);
-        ordem.add(atual);
+        pais.put(atual, pai);
         for (String vizinho : adjacencias.get(atual)) {
             if (!visitados.contains(vizinho)) {
-                dfsRecursivo(vizinho, visitados, ordem);
+                dfsRecursivo(vizinho, atual, visitados, pais);
             }
         }
     }

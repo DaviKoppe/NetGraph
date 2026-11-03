@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Locale;
 
 /**
  * Gerencia os dispositivos associados aos vertices do Grafo.
@@ -22,7 +24,7 @@ public class GerenciadorDispositivos {
     private final Map<String, Dispositivo> dispositivos = new LinkedHashMap<>();
 
     public GerenciadorDispositivos(Grafo grafo) {
-        this.grafo = grafo;
+        this.grafo = Objects.requireNonNull(grafo, "O grafo nao pode ser nulo.");
     }
 
     /** Cria o dispositivo do tipo informado e o registra. Devolve null se o tipo for invalido ou o Grafo recusar. */
@@ -31,6 +33,7 @@ public class GerenciadorDispositivos {
             return null;
         }
         nome = nome.trim();
+        if (nome.isEmpty()) return null;
         Dispositivo d = criar(nome, tipo.trim());
         if (d == null || !grafo.adicionarVertice(nome)) {
             return null; // tipo invalido, nome vazio ou repetido
@@ -80,11 +83,12 @@ public class GerenciadorDispositivos {
 
     /** true se o texto corresponde a um tipo que o cadastro sabe criar. */
     public boolean tipoValido(String tipo) {
-        return tipo != null && criar("teste", tipo.trim()) != null;
+        return tipo != null && (tipo.trim().equalsIgnoreCase("pc")
+                || TIPOS.stream().anyMatch(t -> t.equalsIgnoreCase(tipo.trim())));
     }
 
     private Dispositivo criar(String nome, String tipo) {
-        return switch (tipo.toLowerCase()) {
+        return switch (tipo.toLowerCase(Locale.ROOT)) {
             case "computador", "pc" -> new Computador(nome);
             case "servidor" -> new Servidor(nome);
             case "roteador" -> new Roteador(nome);

@@ -127,7 +127,7 @@ public class PainelRede implements VisualizadorRede {
     }
 
     @Override
-    public void animarPercurso(List<String> ordemDeVisita) {
+    public void animarPercurso(List<String> ordemDeVisita, Map<String, String> pais) {
         limpar();
         if (ordemDeVisita != null) {
             for (String nome : ordemDeVisita) {
@@ -140,7 +140,7 @@ public class PainelRede implements VisualizadorRede {
             desenhar();
             return;
         }
-        paisAnimacao.putAll(calcularPais());
+        if (pais != null) paisAnimacao.putAll(pais);
         if (ordemAnimacao.size() > 1) {
             animacao = new Timeline(new KeyFrame(Duration.millis(intervaloMs), e -> avancar()));
             animacao.setCycleCount(ordemAnimacao.size() - 1);
@@ -209,51 +209,6 @@ public class PainelRede implements VisualizadorRede {
                 aoTerminar.run();
             }
         }
-    }
-
-    /*
-     * Recebe so a ordem de visita, entao a aresta usada para chegar em cada
-     * dispositivo e deduzida: no BFS o pai e o vizinho visitado mais cedo; se a
-     * ordem nao tiver essa forma, usa-se a regra do DFS (pai = topo do caminho
-     * atual apos desempilhar quem nao e vizinho).
-     */
-    private Map<String, String> calcularPais() {
-        Map<String, String> pais = paisPorLargura();
-        return pais != null ? pais : paisPorProfundidade();
-    }
-
-    private Map<String, String> paisPorLargura() {
-        Map<String, String> pais = new HashMap<>();
-        int ultimo = 0;
-        for (int i = 1; i < ordemAnimacao.size(); i++) {
-            String atual = ordemAnimacao.get(i);
-            for (int j = 0; j < i; j++) {
-                if (arestas.contains(chave(ordemAnimacao.get(j), atual))) {
-                    if (j < ultimo) {
-                        return null;
-                    }
-                    ultimo = j;
-                    pais.put(atual, ordemAnimacao.get(j));
-                    break;
-                }
-            }
-        }
-        return pais;
-    }
-
-    private Map<String, String> paisPorProfundidade() {
-        Map<String, String> pais = new HashMap<>();
-        List<String> pilha = new ArrayList<>();
-        for (String atual : ordemAnimacao) {
-            while (!pilha.isEmpty() && !arestas.contains(chave(pilha.get(pilha.size() - 1), atual))) {
-                pilha.remove(pilha.size() - 1);
-            }
-            if (!pilha.isEmpty()) {
-                pais.put(atual, pilha.get(pilha.size() - 1));
-            }
-            pilha.add(atual);
-        }
-        return pais;
     }
 
     private void sincronizarPosicoes() {

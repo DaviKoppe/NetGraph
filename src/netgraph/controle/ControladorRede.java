@@ -6,6 +6,9 @@ import netgraph.conexao.GerenciadorConexoes;
 import netgraph.grafo.Grafo;
 import netgraph.modelo.Dispositivo;
 import netgraph.modelo.GerenciadorDispositivos;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Ponte entre a interface grafica e a logica da rede.
@@ -57,6 +60,54 @@ public class ControladorRede {
     /** Tipos para a interface montar a lista de opcoes (ex.: JComboBox). */
     public List<String> listarTipos() {
         return GerenciadorDispositivos.tiposDisponiveis();
+    }
+
+        public ResultadoOperacao removerDispositivo(String nome) {
+        Dispositivo d = gerenciadorDispositivos.buscar(nome);
+        if (d == null) {
+            return ResultadoOperacao.erro("Dispositivo inexistente: " + exibir(nome) + ".");
+        }
+        if (!gerenciadorDispositivos.remover(d.getNome())) {
+            return ResultadoOperacao.erro("Nao foi possivel remover o dispositivo " + d.getNome() + ".");
+        }
+        return ResultadoOperacao.ok("Dispositivo removido: " + d.getNome() + " (e suas conexoes).");
+    }
+
+    /** Cada conexao aparece uma unica vez (a ordem origem/destino nao importa). */
+    public List<Conexao> listarConexoes() {
+        List<Conexao> conexoes = new ArrayList<>();
+        Set<String> processados = new HashSet<>();
+        for (Dispositivo d : gerenciadorDispositivos.listar()) {
+            for (Dispositivo vizinho : gerenciadorConexoes.obterConexoes(d)) {
+                if (!processados.contains(vizinho.getNome())) {
+                    conexoes.add(new Conexao(d.getNome(), vizinho.getNome()));
+                }
+            }
+            processados.add(d.getNome());
+        }
+        return conexoes;
+    }
+
+    /** Lista vazia se algum nome nao existir ou se nao houver caminho. */
+    public List<Dispositivo> caminhoMaisCurto(String origem, String destino) {
+        Dispositivo a = gerenciadorDispositivos.buscar(origem);
+        Dispositivo b = gerenciadorDispositivos.buscar(destino);
+        if (a == null || b == null) {
+            return new ArrayList<>();
+        }
+        return gerenciadorConexoes.caminhoMaisCurto(a, b);
+    }
+
+    /** Lista vazia se a origem nao existir. */
+    public List<Dispositivo> bfs(String origem) {
+        Dispositivo a = gerenciadorDispositivos.buscar(origem);
+        return a == null ? new ArrayList<>() : gerenciadorConexoes.bfs(a);
+    }
+
+    /** Lista vazia se a origem nao existir. */
+    public List<Dispositivo> dfs(String origem) {
+        Dispositivo a = gerenciadorDispositivos.buscar(origem);
+        return a == null ? new ArrayList<>() : gerenciadorConexoes.dfs(a);
     }
 
     public ResultadoOperacao conectar(String nomeA, String nomeB) {

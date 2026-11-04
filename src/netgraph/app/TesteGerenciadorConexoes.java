@@ -99,9 +99,16 @@ public class TesteGerenciadorConexoes {
         Grafo grafoVazio = new Grafo();
         GerenciadorDispositivos dispositivosVazios = new GerenciadorDispositivos(grafoVazio);
         AnalisadorRede analisadorVazio = new AnalisadorRede(grafoVazio, dispositivosVazios);
-        verificar(analisadorVazio.estaRedeConectada(), "rede vazia e considerada conectada");
+        verificar(!analisadorVazio.estaRedeConectada(), "rede vazia nao e considerada conectada");
         verificar(analisadorVazio.obterDispositivoMaisConectado() == null,
                 "rede vazia nao possui dispositivo mais conectado");
+
+        Grafo grafoIsolado = new Grafo();
+        GerenciadorDispositivos dispositivosIsolados = new GerenciadorDispositivos(grafoIsolado);
+        dispositivosIsolados.cadastrar("PC-Isolado", "pc");
+        AnalisadorRede analisadorIsolado = new AnalisadorRede(grafoIsolado, dispositivosIsolados);
+        verificar(analisadorIsolado.obterDispositivoMaisConectado() == null,
+                "sem conexoes nao ha dispositivo mais conectado");
 
         System.out.println("Testes do GerenciadorConexoes e AnalisadorRede passaram.");
     }

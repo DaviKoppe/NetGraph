@@ -94,14 +94,21 @@ public class Main {
                 break;
             case 12:
                 Dispositivo top = analise.obterDispositivoMaisConectado();
-                System.out.println(top == null
-                        ? "Nenhum dispositivo cadastrado."
-                        : "Mais conectado: " + top + " (" + conexoes.obterQuantidadeConexoes(top) + " conexoes)");
+                if (top != null) {
+                    System.out.println("Mais conectado: " + top + " ("
+                            + conexoes.obterQuantidadeConexoes(top) + " conexoes)");
+                } else if (grafo.listarVertices().isEmpty()) {
+                    System.out.println("Nenhum dispositivo cadastrado.");
+                } else {
+                    System.out.println("Nao ha dispositivos com conexoes.");
+                }
                 break;
             case 13:
                 System.out.println(analise.estaRedeConectada()
                         ? "Sim, todos os dispositivos se alcancam."
-                        : "Nao, existem dispositivos isolados ou grupos separados.");
+                        : grafo.listarVertices().isEmpty()
+                                ? "Nao, a rede esta vazia."
+                                : "Nao, existem dispositivos isolados ou grupos separados.");
                 break;
             case 0:
                 break;

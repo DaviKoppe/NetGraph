@@ -3,10 +3,17 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "netgraph.app.Main",
+            "projectName": "NetGraph"
+        },
+        {
+            "type": "java",
             "name": "NetGraph - Interface",
             "request": "launch",
             "mainClass": "netgraph.app.MainGui",
-            "vmArgs": "--module-path \"\u0024{workspaceFolder}/.javafx/lib\" --add-modules javafx.controls -Djava.library.path=\"\u0024{workspaceFolder}/.javafx/bin\""
+            "vmArgs": "--module-path \"${workspaceFolder}/.javafx/lib\" --add-modules javafx.controls -Djava.library.path=\"${workspaceFolder}/.javafx/bin\""
         }
     ]
 }

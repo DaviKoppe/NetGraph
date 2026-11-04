@@ -40,12 +40,15 @@ public class AnalisadorRede {
                 maisConectado = atual;
             }
         }
+        if (grafo.grau(maisConectado) == 0) {
+            return null;
+        }
         return buscarDispositivo(maisConectado);
     }
 
     public boolean estaRedeConectada() {
         List<String> vertices = grafo.listarVertices();
-        return vertices.isEmpty() || grafo.bfs(vertices.get(0)).size() == vertices.size();
+        return !vertices.isEmpty() && grafo.bfs(vertices.get(0)).size() == vertices.size();
     }
 
     private Dispositivo buscarDispositivo(String nome) {

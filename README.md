@@ -109,7 +109,8 @@ Os testes verificam cadastro e remoção de vértices, conexões, consultas, BFS
 
 | Integrante | Responsabilidade |
 |---|---|
-| Davi | Estrutura do grafo e algoritmos BFS/DFS |
-| Rafael | Classes dos dispositivos (vértices) |
-| Renan | Lógica das conexões (arestas) |
-| Gabriel | Interface do sistema |
+| Davi | Estrutura do grafo, algoritmos BFS/DFS e caminho mínimo |
+| Rafael | Classes dos dispositivos (vértices) e gerenciamento de dispositivos |
+| Renan | Gerenciamento das conexões (arestas) e análise da rede |
+| Gabriel | Controlador e integração das operações entre interface e backend |
+| Kaio | Interface gráfica JavaFX, visualização interativa da topologia e animação dos percursos |

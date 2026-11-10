@@ -17,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import netgraph.conexao.AnalisadorRede;
 import netgraph.conexao.GerenciadorConexoes;
 import netgraph.controle.ControladorRede;
 import netgraph.controle.ResultadoOperacao;
@@ -32,10 +33,12 @@ public class JanelaPrincipal extends Application {
     private final Grafo grafo = new Grafo();
     private final GerenciadorDispositivos dispositivos = new GerenciadorDispositivos(grafo);
     private final GerenciadorConexoes conexoes = new GerenciadorConexoes(grafo, dispositivos);
+    private final AnalisadorRede analisador = new AnalisadorRede(grafo, dispositivos);
     private final ControladorRede controlador = new ControladorRede(grafo, dispositivos, conexoes);
     private final PainelRede painel = new PainelRede();
 
     private final TextField campoNome = new TextField();
+    private final TextField campoBusca = new TextField();
     private final ComboBox<String> comboTipo = new ComboBox<>();
     private final ComboBox<String> comboA = new ComboBox<>();
     private final ComboBox<String> comboB = new ComboBox<>();
@@ -63,6 +66,11 @@ public class JanelaPrincipal extends Application {
         campoNome.setId("campoNome");
         campoNome.setPromptText("Nome do dispositivo");
         campoNome.setMaxWidth(Double.MAX_VALUE);
+
+        campoBusca.setId("campoBusca");
+        campoBusca.setPromptText("Nome para buscar");
+        campoBusca.setMaxWidth(Double.MAX_VALUE);
+        campoBusca.setOnAction(e -> buscar());
 
         comboTipo.setId("comboTipo");
         comboTipo.getItems().setAll(controlador.listarTipos());
@@ -92,7 +100,14 @@ public class JanelaPrincipal extends Application {
                         botao("btnCaminho", "Caminho mais curto (A -> B)", this::caminhoMaisCurto),
                         botao("btnBfs", "BFS a partir de A", this::bfs),
                         botao("btnDfs", "DFS a partir de A", this::dfs),
-                        botao("btnLimpar", "Limpar destaque", painel::limparDestaques)));
+                        botao("btnLimpar", "Limpar destaque", painel::limparDestaques)),
+                secao("Buscar e analisar",
+                        campoBusca,
+                        botao("btnBuscar", "Buscar dispositivo", this::buscar),
+                        botao("btnVizinhos", "Vizinhos de A", this::vizinhos),
+                        botao("btnSemConexao", "Dispositivos sem conexao", this::semConexao),
+                        botao("btnMaisConectado", "Dispositivo mais conectado", this::maisConectado),
+                        botao("btnRedeConectada", "A rede esta toda conectada?", this::redeConectada)));
         menu.setPadding(new Insets(16));
 
         ScrollPane rolagem = new ScrollPane(menu);
@@ -204,6 +219,83 @@ public class JanelaPrincipal extends Application {
         List<String> ordem = new ArrayList<>(pais.keySet());
         painel.animarPercurso(ordem, pais);
         mostrar(true, nome + " a partir de " + comboA.getValue() + ": " + String.join(", ", ordem));
+    }
+
+    private void buscar() {
+        String nome = campoBusca.getText() == null ? "" : campoBusca.getText().trim();
+        if (nome.isEmpty()) {
+            mostrar(false, "Informe o nome do dispositivo para buscar.");
+            campoBusca.requestFocus();
+            return;
+        }
+        Dispositivo achado = dispositivos.buscar(nome);
+        if (achado == null) {
+            painel.limparDestaques();
+            mostrar(false, "Dispositivo nao encontrado: " + nome + ".");
+            return;
+        }
+        comboA.setValue(achado.getNome());
+        painel.destacarDispositivos(List.of(achado.getNome()));
+        mostrar(true, "Encontrado: " + achado + " (" + conexoes.obterQuantidadeConexoes(achado)
+                + " conexoes).");
+    }
+
+    private void vizinhos() {
+        if (!exigirA()) {
+            return;
+        }
+        Dispositivo a = dispositivos.buscar(comboA.getValue());
+        List<String> vizinhos = nomes(conexoes.obterConexoes(a));
+        painel.destacarVizinhos(a.getNome(), vizinhos);
+        mostrar(true, vizinhos.isEmpty()
+                ? a.getNome() + " nao possui conexoes."
+                : "Vizinhos de " + a.getNome() + " (" + vizinhos.size() + "): " + String.join(", ", vizinhos));
+    }
+
+    private void semConexao() {
+        if (dispositivos.listar().isEmpty()) {
+            mostrar(false, "Nenhum dispositivo cadastrado.");
+            return;
+        }
+        List<String> isolados = nomes(analisador.listarDispositivosSemConexao());
+        painel.destacarDispositivos(isolados);
+        mostrar(true, isolados.isEmpty()
+                ? "Todos os dispositivos possuem conexao."
+                : "Sem conexao (" + isolados.size() + "): " + String.join(", ", isolados));
+    }
+
+    private void maisConectado() {
+        Dispositivo topo = analisador.obterDispositivoMaisConectado();
+        if (topo == null) {
+            painel.limparDestaques();
+            mostrar(false, dispositivos.listar().isEmpty()
+                    ? "Nenhum dispositivo cadastrado."
+                    : "Nao ha dispositivos com conexoes.");
+            return;
+        }
+        painel.destacarDispositivos(List.of(topo.getNome()));
+        mostrar(true, "Mais conectado: " + topo + " (" + conexoes.obterQuantidadeConexoes(topo)
+                + " conexoes).");
+    }
+
+    private void redeConectada() {
+        List<String> todos = nomes(dispositivos.listar());
+        if (todos.isEmpty()) {
+            painel.limparDestaques();
+            mostrar(false, "Nenhum dispositivo cadastrado.");
+            return;
+        }
+        if (analisador.estaRedeConectada()) {
+            painel.limparDestaques();
+            mostrar(true, "Sim, todos os dispositivos se alcancam.");
+            return;
+        }
+        List<String> alcancaveis = nomes(controlador.bfs(todos.get(0)));
+        List<String> fora = new ArrayList<>(todos);
+        fora.removeAll(alcancaveis);
+        painel.destacarDispositivos(fora);
+        mostrar(false, "Nao, existem dispositivos isolados ou grupos separados. Fora do grupo de "
+                + todos.get(0) + ": " + String.join(", ", fora));
     }
 
     private void alterarRede(ResultadoOperacao resultado) {

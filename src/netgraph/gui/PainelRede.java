@@ -127,6 +127,31 @@ public class PainelRede implements VisualizadorRede {
         desenhar();
     }
 
+    public void destacarDispositivos(List<String> nomes) {
+        limpar();
+        if (nomes != null) {
+            for (String nome : nomes) {
+                if (tipos.containsKey(nome)) {
+                    nosCaminho.add(nome);
+                }
+            }
+        }
+        desenhar();
+    }
+
+    public void destacarVizinhos(String centro, List<String> vizinhos) {
+        destacarDispositivos(vizinhos);
+        if (tipos.containsKey(centro)) {
+            nosCaminho.add(centro);
+            for (String vizinho : vizinhos) {
+                if (tipos.containsKey(vizinho)) {
+                    arestasCaminho.add(chave(centro, vizinho));
+                }
+            }
+            desenhar();
+        }
+    }
+
     @Override
     public void animarPercurso(List<String> ordemDeVisita, Map<String, String> pais) {
         limpar();

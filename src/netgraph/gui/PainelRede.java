@@ -35,6 +35,7 @@ public class PainelRede implements VisualizadorRede {
     private static final double RAIO = 24;
     private static final double MARGEM = RAIO + 24;
     private static final double LIMIAR_ARRASTO = 4;
+    private static final int INTERVALO_ANIMACAO_MS = 700;
 
     private static final Color COR_ARESTA = Color.rgb(160, 160, 160);
     private static final Color COR_PERCORRIDA = Color.rgb(41, 128, 185);
@@ -61,8 +62,6 @@ public class PainelRede implements VisualizadorRede {
     private final Map<String, String> paisAnimacao = new HashMap<>();
 
     private Timeline animacao;
-    private int intervaloMs = 700;
-    private Runnable aoTerminar;
     private Consumer<String> aoClicar;
     private String arrastando;
     private boolean arrastou;
@@ -168,7 +167,7 @@ public class PainelRede implements VisualizadorRede {
         }
         if (pais != null) paisAnimacao.putAll(pais);
         if (ordemAnimacao.size() > 1) {
-            animacao = new Timeline(new KeyFrame(Duration.millis(intervaloMs), e -> avancar()));
+            animacao = new Timeline(new KeyFrame(Duration.millis(INTERVALO_ANIMACAO_MS), e -> avancar()));
             animacao.setCycleCount(ordemAnimacao.size() - 1);
             animacao.play();
         }
@@ -186,23 +185,11 @@ public class PainelRede implements VisualizadorRede {
         aoClicar = acao;
     }
 
-    public void parar() {
+    private void parar() {
         if (animacao != null) {
             animacao.stop();
             animacao = null;
         }
-    }
-
-    public boolean isAnimando() {
-        return animacao != null;
-    }
-
-    public void setIntervaloAnimacao(int milissegundos) {
-        intervaloMs = Math.max(50, milissegundos);
-    }
-
-    public void setAoTerminarAnimacao(Runnable acao) {
-        aoTerminar = acao;
     }
 
     private void limpar() {
@@ -231,9 +218,6 @@ public class PainelRede implements VisualizadorRede {
 
         if (visitados.size() == ordemAnimacao.size()) {
             parar();
-            if (aoTerminar != null) {
-                aoTerminar.run();
-            }
         }
     }
 

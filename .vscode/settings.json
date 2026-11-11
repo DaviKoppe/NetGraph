@@ -2,7 +2,9 @@
     "java.project.sourcePaths": ["src"],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        ".javafx/lib/*.jar"
+        ".javafx/lib/javafx.base.jar",
+        ".javafx/lib/javafx.graphics.jar",
+        ".javafx/lib/javafx.controls.jar"
     ],
     "files.encoding": "utf8"
 }

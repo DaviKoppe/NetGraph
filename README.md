@@ -1,109 +1,103 @@
 # NetGraph — Simulador de Redes de Computadores
 
-Projeto acadêmico de Estruturas de Dados desenvolvido em Java. Representa uma rede de computadores como um **grafo não direcionado com listas de adjacência**: os vértices representam dispositivos (computadores, servidores, roteadores e switches), e as arestas representam conexões diretas.
+Projeto acadêmico de Estruturas de Dados desenvolvido em Java 17 e JavaFX 17. O NetGraph representa redes de computadores como **grafos não direcionados com listas de adjacência**: os vértices representam dispositivos e as arestas representam conexões bidirecionais.
 
 ## Funcionalidades
 
-- Cadastrar, consultar, listar e remover dispositivos.
-- Criar e remover conexões, impedindo conexões duplicadas, laços e referências a dispositivos inexistentes.
-- Consultar vizinhos e grau de um dispositivo.
-- Percorrer a rede usando BFS (busca em largura) e DFS (busca em profundidade).
-- Analisar dispositivos isolados, dispositivo de maior grau e conectividade da rede.
-- Visualizar a topologia e os percursos na interface gráfica JavaFX.
+- Criar e gerenciar redes independentes em abas, que podem ser renomeadas.
+- Cadastrar, buscar, listar e remover computadores, servidores, roteadores e switches.
+- Criar e remover conexões, impedindo duplicidades, laços e referências a dispositivos não cadastrados.
+- Consultar vizinhos e grau dos dispositivos.
+- Executar BFS (busca em largura), DFS (busca em profundidade) e caminho mais curto.
+- Identificar dispositivos isolados, o dispositivo mais conectado e se a rede é conectada.
+- Visualizar e manipular a topologia: selecionar e arrastar dispositivos, destacar caminhos e acompanhar animações de BFS e DFS.
 
 ## Tecnologias
 
 - Java 17
 - JavaFX 17
-- Listas de adjacência para representação do grafo
+- Listas de adjacência
 
-## Estrutura do projeto
+## Organização do código
 
 ```text
 src/netgraph/
-├── app/        Classes de execução e testes
-├── grafo/      Estrutura do grafo e algoritmos BFS, DFS e caminho mínimo
-├── modelo/     Dispositivos e gerenciamento
-├── conexao/    Gerenciamento de conexões e análise da rede
-├── controle/   Controlador e resultados das operações
-└── gui/        Interface gráfica JavaFX
+├── app/        Entradas da aplicação e testes
+├── grafo/      Grafo e algoritmos de percurso
+├── modelo/     Dispositivos e gerenciamento dos vértices
+├── conexao/    Gerenciamento das arestas e análise da rede
+├── controle/   Integração entre interface e lógica
+└── gui/        Interface JavaFX e visualização da topologia
 ```
 
-## Preparar o ambiente (Windows + VS Code)
+## Executar a versão empacotada
 
-### 1. Instalar o JDK
+Se você recebeu a distribuição em ZIP, extraia o conteúdo completo e execute o arquivo `.exe` incluído. Mantenha os arquivos e pastas auxiliares na estrutura extraída. Essa distribuição é destinada à execução sem precisar configurar manualmente o JDK e o JavaFX.
 
-Instale o **JDK 17** e confirme no terminal:
+O ZIP do executável é distribuído separadamente; este repositório contém o código-fonte.
+
+## Preparar o ambiente de desenvolvimento (Windows + VS Code)
+
+### 1. Instalar o JDK 17
+
+Instale o JDK 17 e confirme no terminal:
 
 ```powershell
 java -version
 javac -version
 ```
 
-Ambos devem indicar a versão 17.
+### 2. Baixar o JavaFX SDK 17
 
-### 2. Baixar o JavaFX SDK
+Baixe o **JavaFX SDK 17 para Windows x64** na [página oficial da Gluon](https://gluonhq.com/products/javafx/) e extraia o arquivo. O SDK não é versionado no repositório.
 
-Baixe o **JavaFX SDK 17 para Windows x64** na [página oficial da Gluon](https://gluonhq.com/products/javafx/). Extraia o ZIP.
-
-O SDK não é incluído no repositório. Cada integrante deve configurar sua cópia local.
-
-### 3. Disponibilizar os arquivos JavaFX no projeto
-
-Na raiz do repositório, crie a estrutura abaixo:
+Na raiz do projeto, crie a estrutura local:
 
 ```text
 .javafx/
-├── lib/    (arquivos .jar da pasta lib do SDK)
-└── bin/    (arquivos .dll da pasta bin do SDK)
+├── lib/    arquivos .jar do SDK
+└── bin/    bibliotecas nativas .dll do SDK
 ```
 
-No PowerShell, ajuste `$fx` para o caminho da pasta `javafx-sdk-17...` extraída e execute:
+No PowerShell, ajuste o caminho de `$fx` para a pasta extraída:
 
 ```powershell
 $fx = "$env:USERPROFILE\Downloads\javafx-sdk-17.0.XX"
 New-Item -ItemType Directory -Force .javafx\lib
 New-Item -ItemType Directory -Force .javafx\bin
-Copy-Item "$fx\lib\*" ".javafx\lib\" -Recurse -Force
+Copy-Item "$fx\lib\javafx.base.jar", "$fx\lib\javafx.graphics.jar", "$fx\lib\javafx.controls.jar" ".javafx\lib\" -Force
 Copy-Item "$fx\bin\*" ".javafx\bin\" -Recurse -Force
 ```
 
-Substitua o caminho de exemplo pelo caminho real do SDK. Confira se os arquivos existem:
+A pasta `.javafx/` é local e ignorada pelo Git.
 
-```powershell
-Test-Path .javafx\lib\javafx.controls.jar
-Test-Path .javafx\bin\glass.dll
-```
+### 3. Abrir e executar no VS Code
 
-Os dois comandos devem retornar `True`. A pasta `.javafx/` é ignorada pelo Git e não deve ser commitada.
+Instale a extensão **Extension Pack for Java**, abra a pasta raiz do projeto e aguarde a indexação.
 
-### 4. Abrir no VS Code
+Em **Run and Debug**, selecione **NetGraph - Interface** para iniciar a aplicação gráfica. A configuração utiliza os módulos JavaFX Controls, Graphics e Base a partir de `.javafx/lib`, além das bibliotecas nativas em `.javafx/bin`.
 
-Instale a extensão **Extension Pack for Java**, abra a pasta raiz do projeto e aguarde a indexação. As configurações versionadas em `.vscode/` e as referências relativas do `.classpath` permitem que o projeto reconheça os JARs locais.
-
-### 5. Executar a interface
-
-Abra **Run and Debug**, selecione **NetGraph - Interface** e execute. A configuração usa `.javafx/lib` como module path e `.javafx/bin` para localizar as bibliotecas nativas do JavaFX.
-
-Para executar a versão de console, rode a classe `netgraph.app.Main`.
+Para iniciar a versão de console, execute a classe `netgraph.app.Main`.
 
 ## Executar os testes
 
-As classes de teste ficam no pacote `netgraph.app`. Execute cada uma como aplicação Java:
+As classes de teste ficam em `src/netgraph/app`. Execute cada uma como aplicação Java:
 
-- `TesteGrafo`
-- `TesteGerenciadorConexoes`
-- `TesteControladorRede`
-- `TesteControladorRedeConsultas`
-- `TestePercursos`
+- `TesteGrafo` — demonstração manual das operações básicas do grafo.
+- `TestePercursos` — verifica a ordem e os predecessores reais de BFS e DFS.
+- `TesteGerenciadorConexoes` — verifica conexões, consultas, percursos, caminho mínimo e análise da rede.
+- `TesteCoberturaConexoes` — verifica casos adicionais e entradas inválidas do gerenciamento e da análise de conexões.
+- `TesteControladorRede` — verifica as operações do controlador.
+- `TesteControladorRedeConsultas` — verifica listagem de conexões, percursos e consultas do controlador.
 
-Os testes verificam cadastro e remoção de vértices, conexões, consultas, BFS, DFS, caminho mínimo e arestas reais de descoberta em grafos cíclicos. As verificações falham com `AssertionError` quando uma condição não é atendida.
+Os testes automatizados usam verificações explícitas e lançam `AssertionError` quando uma condição não é atendida. A execução de `TesteGrafo` é demonstrativa e deve ser conferida pela saída apresentada.
 
-## Decisões da estrutura
+## Decisões da implementação
 
-- O grafo mantém uma lista de adjacência e não depende dos tipos concretos dos dispositivos.
-- Os gerenciadores de dispositivos e conexões compartilham a mesma instância de `Grafo`.
-- O BFS e o DFS também disponibilizam o predecessor real de cada vértice descoberto, permitindo que a interface destaque as arestas corretas durante a animação.
+- O grafo armazena nomes e listas de vizinhos, sem depender dos tipos concretos dos dispositivos.
+- Os gerenciadores compartilham a mesma instância de `Grafo`, evitando manter estruturas de adjacência duplicadas.
+- BFS e DFS disponibilizam os predecessores reais de cada vértice descoberto, permitindo que a interface destaque as arestas efetivamente percorridas.
+- A interface mantém cada rede em uma aba independente.
 
 ## Equipe
 
